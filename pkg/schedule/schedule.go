@@ -69,7 +69,6 @@ func handle(sc Schedule, v shared.Unknown, start time.Time, ok bool) {
 	if sc.S != nil {
 		sc.S(v)
 	}
-
 }
 
 func execute(sc Schedule) {
@@ -88,7 +87,7 @@ func execute(sc Schedule) {
 	select {
 	case v, ok := <-result.Wait():
 		handle(sc, v, start, ok)
-	case _ = <-ctxCause.Done():
+	case <-ctxCause.Done():
 		sc.E(throwError(sc.I, context.Cause(ctxCause).Error()))
 	}
 }
@@ -106,7 +105,7 @@ loop:
 				break loop
 			}
 			go execute(sc)
-		case _ = <-monitor.kill:
+		case <-monitor.kill:
 			break loop
 		}
 	}
@@ -120,7 +119,7 @@ func Kill() {
 }
 
 func Init(c uint64) {
-	if monitor != nil && monitor.closed == false {
+	if monitor != nil && !monitor.closed {
 		return
 	}
 
